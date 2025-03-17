@@ -7,6 +7,7 @@ import { CreateResumeDto } from './dto/create-resume.dto';
 import { z } from 'zod'; // Import Zod for validation
 import ollama from 'ollama';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { generateResumePrompt } from 'src/ai/constants/prompt';
 
 @Injectable()
 export class ResumeService {
@@ -26,6 +27,7 @@ export class ResumeService {
             jobTitle: z.string(),
             company: z.string(),
             yearsOfExperience: z.string(),
+            achievements: z.array(z.string()),
           }),
         ),
         education: z.array(
@@ -45,13 +47,13 @@ export class ResumeService {
       });
 
       // Construct the prompt for the Mistral model
-      const prompt = `Generate a resume for ${userData.name}, who has the following experience: ${userData.experience}. Skills: ${userData.skills}. Job description: ${userData.jobDescription}.`;
+      const prompt = generateResumePrompt(
+        userData.name,
+        userData.experience,
+        userData.skills,
+        userData.jobDescription,
+      );
 
-      // Call Ollama's Mistral model to generate the resume text
-      //   const res = await axios.post('http://localhost:11434/api/generate', {
-      //     model: 'mistral',
-      //     prompt: prompt,
-      //   });
       const response = await ollama.chat({
         model: 'mistral',
         messages: [{ role: 'user', content: prompt }],
@@ -59,17 +61,6 @@ export class ResumeService {
       });
 
       const resume = ResumeSchema.parse(JSON.parse(response.message.content));
-
-      //   // Parse and validate the generated response using the ResumeSchema
-      //   const parsedResponse = JSON.parse(res.data);
-      //   const validatedResume = ResumeSchema.parse(parsedResponse); // Validate the generated resume
-
-      //   // Save the generated resume in the database
-      //   const newResume = this.resumeRepo.create({
-      //     ...userData,
-      //     generatedResume: JSON.stringify(validatedResume), // Save validated resume as a string
-      //   });
-      //   await this.resumeRepo.save(newResume);
 
       // Return the validated resume
       return { generatedResume: resume };
