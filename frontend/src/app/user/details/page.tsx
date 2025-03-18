@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Button, Input, Textarea } from "@nextui-org/react";
+import Resume from "@/app/components/Resume";
 import axios from "axios";
 
 export default function Home() {
@@ -12,13 +13,15 @@ export default function Home() {
     jobDescription: "",
   });
 
+  const [resumeData, setResumeData] = useState(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
   const generateResume = async () => {
     const response = await axios.post("http://localhost:3000/api/resume/generate", userData);
-    console.log(response.data);
+    setResumeData(response.data.generatedResume);
   };
 
   return (
@@ -31,6 +34,11 @@ export default function Home() {
         <Textarea name="skills" label="Skills" onChange={handleChange} />
         <Textarea name="jobDescription" label="Job Description" onChange={handleChange} />
         <Button onPress={generateResume}>Generate Resume</Button>
+
+        <div className="min-h-screen bg-gray-100 py-10">
+          <h1 className="text-3xl font-bold text-center mb-6 text-black">{userData.name}</h1>
+          {resumeData ? <Resume resumeData={resumeData} /> : <p className="text-center">Loading...</p>}
+        </div>
       </div>
     </div>
   );
