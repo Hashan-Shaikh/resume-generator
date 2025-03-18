@@ -62,6 +62,14 @@ export class ResumeService {
 
       const resume = ResumeSchema.parse(JSON.parse(response.message.content));
 
+      // Save the generated resume in the database
+      const newResume = this.resumeRepo.create({
+        ...userData,
+        generatedResume: JSON.stringify(resume), // Save validated resume as a string
+      });
+
+      await this.resumeRepo.save(newResume);
+
       // Return the validated resume
       return { generatedResume: resume };
     } catch (error) {
