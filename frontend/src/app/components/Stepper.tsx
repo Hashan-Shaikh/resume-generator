@@ -9,6 +9,7 @@ import {
   Button,
   Typography,
   TextField,
+  CircularProgress, // Add CircularProgress for the loading animation
 } from '@mui/material';
 
 const steps = ['Name', 'Email', 'Experience', 'Skills', 'Job Description'];
@@ -21,10 +22,10 @@ type FormValues = {
   jobDescription: string;
 };
 
-export default function StepperComponent({ onSubmitData }: { onSubmitData: (data: FormValues) => void }) {
+export default function StepperComponent({ onSubmitData, loading }: { onSubmitData: (data: FormValues) => void; loading: boolean }) {
   const [activeStep, setActiveStep] = React.useState(0);
 
-  const { control, handleSubmit, watch } = useForm<FormValues>({
+  const { control, handleSubmit } = useForm<FormValues>({
     defaultValues: {
       name: '',
       email: '',
@@ -36,8 +37,8 @@ export default function StepperComponent({ onSubmitData }: { onSubmitData: (data
 
   const onSubmit = (data: FormValues) => {
     if (activeStep === steps.length - 1) {
-        onSubmitData(data); // API call only on last step
-      }
+      onSubmitData(data); // Call the API only on the last step
+    }
     setActiveStep(activeStep + 1);
   };
 
@@ -154,13 +155,23 @@ export default function StepperComponent({ onSubmitData }: { onSubmitData: (data
 
       <Box sx={{ mt: 3 }}>
         {activeStep === steps.length ? (
-          <Box>
-            <Typography variant="h6">All steps completed! 🎉</Typography>
-            <Button onClick={() => setActiveStep(0)}>Reset</Button>
+          <Box sx={{ textAlign: 'center' }}>
+            {loading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                <CircularProgress />
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                  Your resume is being generated... 🎉
+                </Typography>
+              </Box>
+            ) : (
+              <Typography variant="h6">All steps completed!</Typography>
+            )}
           </Box>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Box sx={{ mt: 2 }}>{renderStepContent(activeStep)}</Box>
+            <Box sx={{ mt: 2 }} key={`step-${activeStep}`}>
+              {renderStepContent(activeStep)}
+            </Box>
 
             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
               <Button
